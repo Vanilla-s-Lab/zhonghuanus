@@ -20,11 +20,22 @@ export interface Env {
 }
 
 export default {
-    async fetch(
-        request: Request,
-        env: Env,
-        ctx: ExecutionContext
-    ): Promise<Response> {
+    async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+
+        // https://community.cloudflare.com/t/parse-url-query-strings-with-cloudflare-workers/90286/2
+        const {searchParams} = new URL(request.url);
+        let parcelNos = searchParams.get("parcelNos");
+
+        if (parcelNos === null) {
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses
+            return new Response("URL Query String `parcelNos` is required. ", {status: 406});
+        }
+
+        // https://stackoverflow.com/questions/6603015/check-whether-a-string-matches-a-regex-in-js
+        if (!new RegExp("^[0-9]{13}$").test(parcelNos)) {
+            return new Response("`parcelNos` should be 13 digits. ", {status: 406})
+        }
+
         return new Response("Hello World!");
     },
 };
