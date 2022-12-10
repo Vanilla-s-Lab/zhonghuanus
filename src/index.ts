@@ -19,6 +19,13 @@ export interface Env {
     // MY_BUCKET: R2Bucket;
 }
 
+const new_Request_406_NotAcceptable = (body: string) => new Response(body, {status: 406});
+const new_Request_500_InternalServerError = (body: string) => new Response(body, {status: 500});
+const new_Request_200_OK = (body: string) => new Response(body, {status: 200});
+
+// https://blog.cloudflare.com/zh-cn/workers-javascript-modules-zh-cn/
+import {Feed} from "feed";
+
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 
@@ -28,14 +35,48 @@ export default {
 
         if (parcelNos === null) {
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses
-            return new Response("URL Query String `parcelNos` is required. ", {status: 406});
+            return new_Request_406_NotAcceptable("URL Query String `parcelNos` is required. ");
         }
 
         // https://stackoverflow.com/questions/6603015/check-whether-a-string-matches-a-regex-in-js
         if (!new RegExp("^[0-9]{13}$").test(parcelNos)) {
-            return new Response("`parcelNos` should be 13 digits. ", {status: 406})
+            return new_Request_406_NotAcceptable("`parcelNos` should be 13 digits. ")
         }
 
-        return new Response("Hello World!");
+        const ID = "https://www.zhonghuanus.com";
+        const LINK = `${ID}/logistics/getLogistics?parcelNos=${parcelNos}`;
+
+        // https://developers.cloudflare.com/workers/runtime-apis/fetch/
+        const resp = await fetch(LINK);
+        if (!resp.ok) {
+            return new_Request_500_InternalServerError("Upstream request not ok. ");
+        }
+
+        const json = await resp.json();
+
+        // @ts-ignore
+        if (json.code !== 200) {
+            return new_Request_500_InternalServerError("Upstream API status not ok. ");
+        }
+
+        // https://github.com/jpmonette/feed
+        const feed = new Feed({
+            id: `${ID}`,
+            copyright: "Vanilla",
+
+            title: `zhonghuanus ${parcelNos}`
+        });
+
+        // @ts-ignore
+        for (const logisticsVo of json.data[0].logisticsVoList) {
+            feed.addItem({
+                link: `${LINK}`,
+
+                title: logisticsVo.content,
+                date: new Date(logisticsVo.optDate)
+            });
+        }
+
+        return new_Request_200_OK(feed.rss2());
     },
 };
