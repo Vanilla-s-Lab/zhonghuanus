@@ -78,7 +78,10 @@ export default {
                 link: `${LINK}`,
 
                 title: logisticsVo.content,
-                date: new Date(logisticsVo.optDate)
+                date: new Date(logisticsVo.optDate),
+
+                // https://stackoverflow.com/questions/9873197/how-to-convert-date-to-timestamp
+                guid: (Date.parse(logisticsVo.optDate) / 1000).toString()
             });
         }
 
