@@ -21,7 +21,12 @@ export interface Env {
 
 const new_Request_406_NotAcceptable = (body: string) => new Response(body, {status: 406});
 const new_Request_500_InternalServerError = (body: string) => new Response(body, {status: 500});
-const new_Request_200_OK = (body: string) => new Response(body, {status: 200});
+
+// https://www.rssboard.org/rss-validator/docs/warning/UnexpectedContentType.html
+const new_Request_200_OK = (body: string) => new Response(body, {
+    status: 200,
+    headers: {'Content-Type': 'application/xml'}
+});
 
 // https://blog.cloudflare.com/zh-cn/workers-javascript-modules-zh-cn/
 import {Feed} from "feed";
