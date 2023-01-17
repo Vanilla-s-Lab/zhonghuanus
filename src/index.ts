@@ -31,6 +31,9 @@ const new_Request_200_OK = (body: string) => new Response(body, {
 // https://blog.cloudflare.com/zh-cn/workers-javascript-modules-zh-cn/
 import {Feed} from "feed";
 
+// https://www.npmjs.com/package/ts-md5
+import {Md5} from "ts-md5";
+
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 
@@ -80,8 +83,10 @@ export default {
                 title: logisticsVo.content,
                 date: new Date(logisticsVo.optDate),
 
-                // https://stackoverflow.com/questions/9873197/how-to-convert-date-to-timestamp
-                guid: (Date.parse(logisticsVo.optDate) / 1000).toString()
+                guid: new Md5()
+                    .appendStr(logisticsVo.content)
+                    .appendStr(logisticsVo.optDate)
+                    .end() as string
             });
         }
 
