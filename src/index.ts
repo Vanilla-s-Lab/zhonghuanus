@@ -75,10 +75,12 @@ export default {
             title: `zhonghuanus ${parcelNos}`
         });
 
+        const GITHUB_LINK = "https://github.com/Vanilla-s-Lab/zhonghuanus";
+
         // @ts-ignore
         for (const logisticsVo of json.data[0].logisticsVoList) {
             feed.addItem({
-                link: `${LINK}`,
+                link: `${GITHUB_LINK}`,
 
                 title: logisticsVo.content,
                 date: new Date(logisticsVo.optDate),
